@@ -450,9 +450,9 @@ with st.sidebar:
 # --------------------------------------------------
 # Topbar
 # --------------------------------------------------
-st.markdown('<div class="topbar">AI Assistant</div>', unsafe_allow_html=True)
+# st.markdown('<div class="topbar">AI Assistant</div>', unsafe_allow_html=True)
 
-
+st.markdown("<div style='height: 3.5rem;'></div>", unsafe_allow_html=True)
 # --------------------------------------------------
 # Hero Section
 # --------------------------------------------------
