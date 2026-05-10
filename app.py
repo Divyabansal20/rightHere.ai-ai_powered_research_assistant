@@ -138,7 +138,7 @@ st.markdown(
 
 .sidebar-logo-text {
     font-family: 'Sora', sans-serif;
-    font-size: 1.3rem;
+    font-size: 2rem;
     font-weight: 700;
     margin-bottom: 1.2rem;
 }
@@ -236,6 +236,58 @@ st.markdown(
     box-shadow: 0 4px 14px rgba(59,91,219,0.25) !important;
 }
 
+section[data-testid="stSidebar"] .stButton {
+    margin-bottom: 0.5px !important;   /* controls spacing between cards */
+}
+
+section[data-testid="stSidebar"] .stButton > button {
+    background: rgba(59, 130, 246, 0.08) !important;
+    color: #334155 !important;
+    border: 1px solid rgba(59, 130, 246, 0.14) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+
+    font-size: 0.90rem !important;
+    font-weight: 500 !important;
+    text-align: center !important;
+
+    padding: 0.75rem 0.90rem !important;
+
+    /* Remove button margin completely */
+    margin: 0 !important;
+
+    /* Reduce internal minimum height */
+    min-height: 44px !important;
+
+    /* Single-line text with ellipsis */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    line-height: 1.2 !important;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease !important;
+}
+
+/* Hover effect */
+section[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(59, 130, 246, 0.14) !important;
+    border-color: rgba(59, 130, 246, 0.22) !important;
+    color: #1e293b !important;
+    transform: none !important;
+}
+
+/* Active/selected effect */
+section[data-testid="stSidebar"] .stButton > button:focus,
+section[data-testid="stSidebar"] .stButton > button:active {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
 /* Send button styling */
 
 .stButton > button {
