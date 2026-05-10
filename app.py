@@ -507,7 +507,14 @@ if generate_clicked:
             st.rerun()
 
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            error_message = str(e)
+
+            if "429" in error_message or "quota" in error_message.lower():
+                st.error(
+                    "API usage limit reached. Please wait a few seconds and try again."
+                )
+            else:
+                st.error(f"An error occurred: {error_message}")
 
 # Display Research Result
 
