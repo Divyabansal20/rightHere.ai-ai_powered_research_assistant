@@ -1,7 +1,8 @@
 from ddgs import DDGS
 
-
+# using duckduckgo for web search
 def search_web(query, max_results=5):
+
     """
     Search the web using DuckDuckGo and return a formatted string
     containing titles, snippets, and URLs.
@@ -12,6 +13,7 @@ def search_web(query, max_results=5):
     with DDGS() as ddgs:
         results = ddgs.text(query, max_results=max_results)
 
+        # formatting search result 
         for result in results:
             title = result.get("title", "No Title")
             snippet = result.get("body", "No Description")
