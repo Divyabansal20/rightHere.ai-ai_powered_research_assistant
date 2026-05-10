@@ -1,9 +1,5 @@
-# Complete `app.py`
-
 from pathlib import Path
-
 import streamlit as st
-
 from utils.gemini_client import generate_research
 from utils.file_manager import save_to_txt
 from utils.pdf_export import save_to_pdf
@@ -14,7 +10,6 @@ from utils.pdf_export import save_to_pdf
 # --------------------------------------------------
 st.set_page_config(
     page_title="rightHere.ai",
-    page_icon="🔬",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -278,7 +273,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    if st.button("➕ New Chat", use_container_width=True):
+    if st.button("New Chat", use_container_width=True):
         clear_current_chat()
         st.rerun()
 
@@ -322,7 +317,7 @@ with st.sidebar:
 
             # Sidebar download button
             st.download_button(
-                label=f"📄 {file_path.name}",
+                label=f"{file_path.name}",
                 data=file_data,
                 file_name=file_path.name,
                 mime=(
@@ -358,12 +353,25 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
 # --------------------------------------------------
 # Input Section
 # --------------------------------------------------
+st.markdown(
+    """
+    <div style="
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.6rem;
+    ">
+        What would you like to research?
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 topic = st.text_area(
-    label="What would you like to research?",
+    label="Research Topic",
     placeholder="e.g. Impact of AI on renewable energy adoption...",
     height=120,
     label_visibility="collapsed",
