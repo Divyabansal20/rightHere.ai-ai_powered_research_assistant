@@ -19,7 +19,37 @@ st.set_page_config(
 # Session State Initialization
 # --------------------------------------------------
 if "history" not in st.session_state:
-    st.session_state.history = []
+    output_dir = Path("research_outputs")
+    output_dir.mkdir(exist_ok=True)
+
+    history_items = []
+
+    # Read all TXT files and reconstruct history
+    for txt_file in sorted(
+        output_dir.glob("*.txt"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    ):
+        topic = txt_file.stem.replace("_", " ").title()
+
+        try:
+            with open(txt_file, "r", encoding="utf-8") as f:
+                report = f.read()
+        except Exception:
+            report = "Unable to load this report."
+
+        pdf_file = txt_file.with_suffix(".pdf")
+
+        history_items.append(
+            {
+                "topic": topic,
+                "report": report,
+                "txt_path": str(txt_file),
+                "pdf_path": str(pdf_file) if pdf_file.exists() else "",
+            }
+        )
+
+    st.session_state.history = history_items
 
 if "downloads" not in st.session_state:
     output_dir = Path("research_outputs")
