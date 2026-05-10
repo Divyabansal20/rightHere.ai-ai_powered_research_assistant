@@ -22,7 +22,21 @@ if "history" not in st.session_state:
     st.session_state.history = []
 
 if "downloads" not in st.session_state:
-    st.session_state.downloads = []
+    output_dir = Path("research_outputs")
+    output_dir.mkdir(exist_ok=True)
+
+    # Load all existing TXT and PDF files from disk
+    existing_files = sorted(
+        [
+            str(path)
+            for path in output_dir.glob("*")
+            if path.suffix.lower() in [".txt", ".pdf"]
+        ],
+        key=lambda p: Path(p).stat().st_mtime,
+        reverse=True,
+    )
+
+    st.session_state.downloads = existing_files
 
 
 # --------------------------------------------------
