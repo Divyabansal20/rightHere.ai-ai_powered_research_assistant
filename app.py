@@ -192,20 +192,41 @@ st.markdown(
     box-shadow: 0 4px 14px rgba(59,91,219,0.25) !important;
 }
 
-/* Main send button */
-div[data-testid="column"]:last-child .stButton > button {
-    background: linear-gradient(135deg, #3b5bdb, #4f6bed) !important;
-    color: white !important;
+/* Send button styling */
+
+.stButton > button {
+    background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
+    color: #ffffff !important;
     border: none !important;
-    border-radius: 13px !important;
-    width: 50px !important;
-    height: 50px !important;
-    min-width: 50px !important;
-    font-size: 1.1rem !important;
+    border-radius: 14px !important;
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    font-size: 1.2rem !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 16px rgba(59,91,219,0.32) !important;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.30) !important;
     padding: 0 !important;
     margin-top: 22px !important;
+    transition: all 0.25s ease !important;
+}
+
+/* Hover effect */
+.stButton > button:hover {
+    background: linear-gradient(135deg, #2563eb, #4f46e5) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.40) !important;
+    transform: translateY(-2px) scale(1.03) !important;
+}
+
+/* Active click effect */
+.stButton > button:active {
+    transform: scale(0.96) !important;
+}
+
+/* Focus state */
+.stButton > button:focus {
+    outline: none !important;
+    color: #ffffff !important;
 }
 
 /* Output card */
