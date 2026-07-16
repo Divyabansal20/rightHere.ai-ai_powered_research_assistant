@@ -1,4 +1,3 @@
-from pathlib import Path
 import streamlit as st
 from utils.gemini_client import generate_research
 from utils.file_manager import get_txt_data
