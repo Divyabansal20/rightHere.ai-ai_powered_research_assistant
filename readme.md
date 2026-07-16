@@ -2,30 +2,24 @@
 
 rightHere.ai is an AI research assistant that generates structured, well-formatted research reports on any topic. The application combines a modern Streamlit interface, live web search, and a large language model to deliver grounded research summaries with downloadable TXT and PDF exports.
 
-The system is designed as an AI agent with multiple MCP-style tools, enabling it to retrieve external information and persist generated outputs.
+The system is built as an AI agent using in-memory session states, enabling it to search the web in real-time, generate report summaries, and manage user-specific history and downloads without requiring persistent server disk storage. This makes the application **completely deployment-ready** and secure for multi-user cloud platforms.
 
 ---
+
 ## Features
 
-* Accepts any research topic through a professional web interface
-* Supports configurable writing tone:
-
-  * Balanced
-  * Beginner
-  * Technical
-  * Business
-* Supports configurable research depth:
-
-  * Basic
-  * Detailed
-  * Comprehensive
-  * Academic
-* Performs live web search to gather current information
-* Generates structured research reports using Google Gemini
-* Saves each report as both TXT and PDF
-* Maintains persistent History and Downloads across application restarts
-* Provides one-click downloads from the UI
-* Handles empty inputs, API quota limits, and runtime errors gracefully
+* **Professional Web UI**: Clean, responsive Streamlit dashboard with a modern gradient theme.
+* **Configurable Writing Tone**:
+  * *Balanced*: Objective and comprehensive.
+  * *Beginner*: Simple terms and easy-to-understand explanations.
+  * *Technical*: Deep technical terminology and in-depth analyses.
+  * *Business*: Strategic, high-level executive summaries.
+* **Configurable Research Depth**: Supports *Basic*, *Detailed*, *Comprehensive*, and *Academic* depths.
+* **Live Web Search**: Integrates DuckDuckGo text searches to retrieve the latest live web context.
+* **Gemini LLM Integration**: Synthesizes and structures gathered research using Google Gemini (`gemini-2.5-flash`).
+* **Privacy-Safe In-Memory Architecture**: History and generated reports are managed strictly in-memory per user session. There is **zero local filesystem persistence**, preventing history leaks between users in a multi-user deployment.
+* **Instant Exports**: One-click download buttons to export reports as clean `.txt` or formatted `.pdf` files.
+* **Robust Error Handling**: Gracefully handles API key exceptions, rate limiting (HTTP 429 quota limits), and empty inputs.
 
 ---
 
@@ -45,8 +39,8 @@ The system is designed as an AI agent with multiple MCP-style tools, enabling it
   Structured Research Report
             |
             v
-     File System MCP
-   (TXT/PDF Persistence)
+  In-Memory Session State
+(Isolated TXT/PDF Generation)
             |
             v
   History and Downloads UI
@@ -54,47 +48,17 @@ The system is designed as an AI agent with multiple MCP-style tools, enabling it
 
 ---
 
-## MCP Integrations
+## Component Integrations
 
-### 1. Web Search MCP
+### 1. Web Search
+The assistant integrates a web search tool using DuckDuckGo (`ddgs`). Before generating a report, the agent retrieves relevant live snippets and feeds them to the language model as grounded context.
+* **Implementation**: [utils/web_search.py](file:///c:/ai-intern-final-divya-bansal/utils/web_search.py)
 
-The assistant integrates a web search tool using DuckDuckGo (`ddgs`). Before generating a report, the agent retrieves current search results and uses them as context for the language model.
-
-**Implementation:** 
-* `utils/web_search.py`
-
----
-
-### 2. File System MCP
-
-The assistant saves every generated report to the local `research_outputs/` directory in both TXT and PDF formats. On application startup, the system scans this directory to rebuild the History and Downloads panels.
-
-**Implementation:**
-
-* `utils/file_manager.py`
-* `utils/pdf_export.py`
-
----
-
-## LLM Integration
-
-The application uses Google Gemini (`gemini-2.5-flash`) to generate research reports.
-
-The LLM receives:
-* The user's research topic
-* Selected tone and depth preferences
-* Live web search results
-
-The model returns a structured report containing:
-* Introduction
-* Key Concepts
-* Current Trends
-* Applications
-* Advantages
-* Challenges
-* Future Scope
-* Conclusion
-* References
+### 2. In-Memory Document Generation
+Rather than storing generated files on a local server directory (which is unsecure for multi-user settings and incompatible with ephemeral cloud instances), files are compiled as in-memory streams:
+* **TXT generation**: Handled dynamically as a text stream.
+* **PDF generation**: Handled in-memory using `fpdf2` by converting the document output to binary `bytes`.
+* **Implementation**: [utils/file_manager.py](file:///c:/ai-intern-final-divya-bansal/utils/file_manager.py) and [utils/pdf_export.py](file:///c:/ai-intern-final-divya-bansal/utils/pdf_export.py)
 
 ---
 
@@ -103,42 +67,40 @@ The model returns a structured report containing:
 ```text
 ai-intern-final-divya-bansal/
 │
-├── app.py
-├── requirements.txt
-├── README.md
-├── .gitignore
-├── .env
+├── app.py                   # Main Streamlit Application & Session Logic
+├── requirements.txt         # Project Dependencies
+├── README.md                # Documentation
+├── .gitignore               # Ignored local configurations
+├── .env                     # Local Environment Secrets (Ignored from Git)
 │
 ├── utils/
-│   ├── gemini_client.py
-│   ├── web_search.py
-│   ├── file_manager.py
-│   └── pdf_export.py
+│   ├── gemini_client.py     # Google Gemini API wrapper & prompt builder
+│   ├── web_search.py        # DuckDuckGo search integration
+│   ├── file_manager.py      # Filename sanitization & TXT generators
+│   └── pdf_export.py        # In-memory FPDF2 export generator
 │
-├── research_outputs/        # Auto-generated at runtime
-└── screenshots/             # Optional demonstration images
+└── screenshots/             # Interface and demo demonstration images
 ```
 
 ---
 
 ## Technology Stack
 
-| Component              | Technology          |
-| ---------------------- | ------------------- |
-| Frontend               | Streamlit           |
-| Backend                | Python              |
-| LLM API                | Google Gemini       |
-| Web Search MCP         | DuckDuckGo (`ddgs`) |
-| File System MCP        | Local filesystem    |
-| PDF Export             | `fpdf2`             |
-| Environment Management | `python-dotenv`     |
+| Component | Technology |
+| :--- | :--- |
+| **Frontend** | Streamlit |
+| **Backend** | Python |
+| **LLM API** | Google Gemini (`gemini-2.5-flash`) |
+| **Web Search** | DuckDuckGo (`ddgs`) |
+| **Storage & State** | Streamlit In-Memory Session State |
+| **PDF Export** | `fpdf2` (bytes stream) |
+| **Environment** | `python-dotenv` |
 
 ---
 
 ## Setup Instructions
 
 ### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/Divyabansal20/ai-intern-final-divya-bansal.git
 cd ai-intern-final-divya-bansal
@@ -147,62 +109,44 @@ cd ai-intern-final-divya-bansal
 ### 2. Create a Virtual Environment
 
 #### Windows
-
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
 #### macOS/Linux
-
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
 ### 3. Install Dependencies
-
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Create a `.env` File
-
-Create a `.env` file in the project root:
-
+### 4. Configure Secrets
+Create a `.env` file in the root directory:
 ```env
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
+> [!NOTE]
+> You can acquire a free Gemini API key from [Google AI Studio](https://aistudio.google.com).
 
-### 5. Get a Gemini API Key
-
-Generate a free API key from Google AI Studio:
-
-[https://aistudio.google.com](https://aistudio.google.com)
-
-### 6. Run the Application
-
+### 5. Run the Application
 ```bash
 streamlit run app.py
 ```
-
-The application will open in your browser.
-
----
-
-## Error Handling
-
-The application includes robust error handling for:
-* Empty research topics
-* Missing API keys
-* API quota limits (HTTP 429)
-* Network errors
-* File generation failures
+The application will automatically launch at `http://localhost:8501`.
 
 ---
 
 ## Deployment Considerations
 
-The current implementation uses a local file-based persistence layer. This is ideal for demonstrating MCP-based file interactions and works well for single-user use cases.
-
-For multi-user production deployments, the File System MCP can be replaced with cloud storage and a database (e.g., Firebase, Supabase, or AWS S3) to isolate user data and provide durable storage.
+> [!TIP]
+> **Production Ready out-of-the-box!**
+> Because the application relies entirely on in-memory storage, you can deploy it directly to **Streamlit Community Cloud** or **Hugging Face Spaces**. 
+> 
+> * **No Shared State**: When deployed, users will have completely isolated browser sessions—ensuring one user cannot view another user's research history or downloads.
+> * **No Hard Disks Required**: The container filesystem can be completely read-only or ephemeral.
+> * **API Keys**: Ensure you specify `GEMINI_API_KEY` under the deployment platform's **Secrets / Environment Variables** settings rather than committing your `.env` file.
