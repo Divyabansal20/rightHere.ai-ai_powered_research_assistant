@@ -1,8 +1,8 @@
 from pathlib import Path
 import streamlit as st
 from utils.gemini_client import generate_research
-from utils.file_manager import save_to_txt
-from utils.pdf_export import save_to_pdf
+from utils.file_manager import get_txt_data
+from utils.pdf_export import generate_pdf_data
 
 # Page Configuration
 st.set_page_config(
@@ -11,55 +11,11 @@ st.set_page_config(
 
 # Session State Initialization
 if "history" not in st.session_state:
-    output_dir = Path("research_outputs")
-    output_dir.mkdir(exist_ok=True)
-
-    history_items = []
-
-    # Read all TXT files and reconstruct history
-    for txt_file in sorted(
-        output_dir.glob("*.txt"),
-        key=lambda p: p.stat().st_mtime,
-        reverse=True,
-    ):
-        topic = txt_file.stem.replace("_", " ").title()
-
-        try:
-            with open(txt_file, "r", encoding="utf-8") as f:
-                report = f.read()
-        except Exception:
-            report = "Unable to load this report."
-
-        pdf_file = txt_file.with_suffix(".pdf")
-
-        history_items.append(
-            {
-                "topic": topic,
-                "report": report,
-                "txt_path": str(txt_file),
-                "pdf_path": str(pdf_file) if pdf_file.exists() else "",
-            }
-        )
-
-    st.session_state.history = history_items
+    st.session_state.history = []
 
 # Download state initialization 
 if "downloads" not in st.session_state:
-    output_dir = Path("research_outputs")
-    output_dir.mkdir(exist_ok=True)
-
-    # Load all existing TXT and PDF files from disk
-    existing_files = sorted(
-        [
-            str(path)
-            for path in output_dir.glob("*")
-            if path.suffix.lower() in [".txt", ".pdf"]
-        ],
-        key=lambda p: Path(p).stat().st_mtime,
-        reverse=True,
-    )
-
-    st.session_state.downloads = existing_files
+    st.session_state.downloads = []
 
 
 # Helper Functions
@@ -67,12 +23,12 @@ if "downloads" not in st.session_state:
 # Clearing the chat 
 def clear_current_chat():
     """Clear only the currently displayed chat, preserving history."""
-    for key in ["report", "topic", "txt_path", "pdf_path"]:
+    for key in ["report", "topic", "txt_name", "txt_data", "pdf_name", "pdf_data"]:
         if key in st.session_state:
             del st.session_state[key]
 
 # Adding to history 
-def add_to_history(topic, report, txt_path, pdf_path):
+def add_to_history(topic, report, txt_name, txt_data, pdf_name, pdf_data):
     """Add current research to history and downloads."""
 
     # Avoid duplicate history entries for the same topic
@@ -84,15 +40,27 @@ def add_to_history(topic, report, txt_path, pdf_path):
             {
                 "topic": topic,
                 "report": report,
-                "txt_path": txt_path,
-                "pdf_path": pdf_path,
+                "txt_name": txt_name,
+                "txt_data": txt_data,
+                "pdf_name": pdf_name,
+                "pdf_data": pdf_data,
             }
         )
 
     # Track generated files
-    for file_path in [txt_path, pdf_path]:
-        if file_path not in st.session_state.downloads:
-            st.session_state.downloads.append(file_path)
+    for file_name, file_data, mime in [
+        (txt_name, txt_data, "text/plain"),
+        (pdf_name, pdf_data, "application/pdf"),
+    ]:
+        exists = any(d["filename"] == file_name for d in st.session_state.downloads)
+        if not exists:
+            st.session_state.downloads.append(
+                {
+                    "filename": file_name,
+                    "data": file_data,
+                    "mime": mime,
+                }
+            )
 
 
 # CSS Styling
@@ -378,8 +346,10 @@ with st.sidebar:
             ):
                 st.session_state.report = item["report"]
                 st.session_state.topic = item["topic"]
-                st.session_state.txt_path = item["txt_path"]
-                st.session_state.pdf_path = item["pdf_path"]
+                st.session_state.txt_name = item["txt_name"]
+                st.session_state.txt_data = item["txt_data"]
+                st.session_state.pdf_name = item["pdf_name"]
+                st.session_state.pdf_data = item["pdf_data"]
                 st.rerun()
     else:
         st.caption("No research topics yet.")
@@ -391,24 +361,12 @@ with st.sidebar:
     )
 
     if st.session_state.downloads:
-        for i, path in enumerate(reversed(st.session_state.downloads[-10:])):
-            file_path = Path(path)
-
-            if not file_path.exists():
-                continue
-
-            with open(file_path, "rb") as f:
-                file_data = f.read()
-
+        for i, file_info in enumerate(reversed(st.session_state.downloads[-10:])):
             st.download_button(
-                label=f"{file_path.name}",
-                data=file_data,
-                file_name=file_path.name,
-                mime=(
-                    "application/pdf"
-                    if file_path.suffix.lower() == ".pdf"
-                    else "text/plain"
-                ),
+                label=f"{file_info['filename']}",
+                data=file_info['data'],
+                file_name=file_info['filename'],
+                mime=file_info['mime'],
                 use_container_width=True,
                 key=f"sidebar_download_{i}",
             )
@@ -492,17 +450,19 @@ if generate_clicked:
                     depth=depth,
                 )
 
-                txt_path = save_to_txt(topic, report)
-                pdf_path = save_to_pdf(topic, report)
+                txt_name, txt_data = get_txt_data(topic, report)
+                pdf_name, pdf_data = generate_pdf_data(topic, report)
 
             # Save current result
             st.session_state.report = report
             st.session_state.topic = topic
-            st.session_state.txt_path = txt_path
-            st.session_state.pdf_path = pdf_path
+            st.session_state.txt_name = txt_name
+            st.session_state.txt_data = txt_data
+            st.session_state.pdf_name = pdf_name
+            st.session_state.pdf_data = pdf_data
 
             # Update history and downloads
-            add_to_history(topic, report, txt_path, pdf_path)
+            add_to_history(topic, report, txt_name, txt_data, pdf_name, pdf_data)
 
             st.rerun()
 
@@ -529,27 +489,25 @@ if "report" in st.session_state:
 
     # Download TXT
     with col1:
-        with open(st.session_state.txt_path, "rb") as f:
-            st.download_button(
-                label="Download TXT",
-                data=f.read(),
-                file_name=Path(st.session_state.txt_path).name,
-                mime="text/plain",
-                use_container_width=True,
-                key="download_txt",
-            )
+        st.download_button(
+            label="Download TXT",
+            data=st.session_state.txt_data,
+            file_name=st.session_state.txt_name,
+            mime="text/plain",
+            use_container_width=True,
+            key="download_txt",
+        )
 
     # Download PDF
     with col2:
-        with open(st.session_state.pdf_path, "rb") as f:
-            st.download_button(
-                label="Download PDF",
-                data=f.read(),
-                file_name=Path(st.session_state.pdf_path).name,
-                mime="application/pdf",
-                use_container_width=True,
-                key="download_pdf",
-            )
+        st.download_button(
+            label="Download PDF",
+            data=st.session_state.pdf_data,
+            file_name=st.session_state.pdf_name,
+            mime="application/pdf",
+            use_container_width=True,
+            key="download_pdf",
+        )
 
 # Optional Footer Spacing
 st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)

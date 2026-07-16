@@ -23,18 +23,9 @@ def sanitize_filename(topic):
         topic = "research_report"
     return topic
 
-# Adding file content 
-
-def save_to_txt(topic, content):
+def get_txt_data(topic, content):
     """
-    Save generated research content to a text file.
+    Generate the text filename and return the contents.
     """
-    os.makedirs("research_outputs", exist_ok=True)
-
     filename = sanitize_filename(topic) + ".txt"
-    filepath = os.path.join("research_outputs", filename)
-
-    with open(filepath, "w", encoding="utf-8") as file:
-        file.write(content)
-
-    return filepath
+    return filename, content
